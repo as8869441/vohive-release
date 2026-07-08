@@ -79,13 +79,13 @@ main() {
     TMP_DIR=$(mktemp -d)
     trap 'rm -rf "$TMP_DIR"' EXIT
 
-    info "安装版本: $VERSION 架构: $arch"
-    # 修改为真实文件名
-    BIN_FILE="vohive_${VERSION}_linux_arm64"
+      info "安装版本: $VERSION 架构: $arch"
+    BIN_FILE="vohive-linux-arm64"
     # ghproxy 加速地址
     RAW_URL="https://github.com/$REPO/releases/download/$VERSION/$BIN_FILE"
+    BIN_URL="https://cdn.jsdelivr.net/gh/$REPO@$VERSION/$BIN_FILE"
     BIN_URL="https://mirror.ghproxy.com/$RAW_URL"
-    info "镜像下载地址: $BIN_URL"
+    info "镜像下载地址: $BIN_URL""
 
     if [ "$DRY_RUN" -eq 0 ]; then
         download "$BIN_URL" > "${TMP_DIR}/vohive"
