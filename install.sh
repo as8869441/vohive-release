@@ -61,6 +61,7 @@ parse_args() {
     done
 }
 
+# 自动识别CPU架构
 detect_arch() {
     local uname_arch=$(uname -m)
     case "$uname_arch" in
@@ -76,6 +77,7 @@ detect_arch() {
     esac
 }
 
+# 生成默认配置文件（不存在才生成，不覆盖用户已有配置）
 gen_default_config() {
     local cfg="$CONFIG_DIR/config.yaml"
     if [ ! -f "$cfg" ]; then
@@ -97,6 +99,7 @@ YAML
 
 install_service() {
     if [ -f "$PROCD_PATH" ]; then
+        # 标准 procd 托管脚本
         cat > "$OPENWRT_INIT_PATH" <<SVC
 #!/bin/sh /etc/rc.common
 START=99
@@ -116,10 +119,9 @@ start_service() {
 }
 SVC
         chmod +x "$OPENWRT_INIT_PATH"
-        # 改用标准两条命令确保开机自启生效
-        /etc/init.d/vohive disable
-        /etc/init.d/vohive enable
-        info "已生成procd脚本并强制开启开机自启: $OPENWRT_INIT_PATH"
+        # 自动设置开机自启
+        "$OPENWRT_INIT_PATH" enable
+        info "已生成 procd 托管脚本并设置开机自启: $OPENWRT_INIT_PATH"
     fi
 }
 
@@ -134,6 +136,7 @@ main() {
 
     info "安装版本: $VERSION 架构: $arch"
     BIN_FILE="vohive-linux-$arch"
+    # 移除ghproxy，使用原生github地址
     BIN_URL="https://github.com/$REPO/releases/download/$VERSION/$BIN_FILE"
     info "下载地址: $BIN_URL"
 
@@ -142,9 +145,13 @@ main() {
         download "$BIN_URL" > "${TMP_DIR}/vohive"
     fi
 
+    # 创建所有目录
     mkdir -p "$INSTALL_DIR" "$CONFIG_DIR" "$DATA_DIR" "$LOG_DIR"
+
+    # 自动生成默认配置
     gen_default_config
 
+    # 备份旧程序
     if [ -f "$BIN_PATH" ]; then
         cp "$BIN_PATH" "$BACKUP_PATH"
         info "旧程序已备份至 $BACKUP_PATH"
