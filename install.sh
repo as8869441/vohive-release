@@ -310,11 +310,11 @@ main() {
   need_cmd mktemp
   need_download_cmd
 
-  os="$(uname -s | tr '[:upper:]' '[:lower:]')"
-  if [ "${os}" != "linux" ]; then
-    err "不支持的系统: ${os}"
+OS=$(uname -s)
+if ! echo "$OS" | grep -qi linux; then
+    echo "[vohive-install] 错误: 不支持的系统: $OS"
     exit 1
-  fi
+fi
 
   TMP_DIR="$(mktemp -d)"
   trap 'rm -rf "${TMP_DIR}"' EXIT INT TERM
