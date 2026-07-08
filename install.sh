@@ -19,9 +19,7 @@ PROCD_PATH=/sbin/procd
 
 DOWNLOAD_CMD=""
 TMP_DIR=""
-
-# 硬编码架构 aarch64
-arch="aarch64"
+arch=""
 
 err() {
     printf '[vohive-install] 错误: %s\n' "$1" >&2
@@ -61,6 +59,22 @@ parse_args() {
         esac
         shift
     done
+}
+
+# 自动识别CPU架构
+detect_arch() {
+    local uname_arch=$(uname -m)
+    case "$uname_arch" in
+        aarch64|arm64)
+            arch="arm64"
+            ;;
+        x86_64|amd64)
+            arch="amd64"
+            ;;
+        *)
+            err "不支持的CPU架构: $uname_arch"
+            ;;
+    esac
 }
 
 # 生成默认配置文件（不存在才生成，不覆盖用户已有配置）
@@ -113,6 +127,7 @@ SVC
 
 main() {
     parse_args "$@"
+    detect_arch
     need_cmd mktemp
     need_download_cmd
 
@@ -120,7 +135,7 @@ main() {
     trap 'rm -rf "$TMP_DIR"' EXIT
 
     info "安装版本: $VERSION 架构: $arch"
-    BIN_FILE="vohive-linux-arm64"
+    BIN_FILE="vohive-linux-$arch"
     # ghproxy 加速下载
     BIN_URL="https://ghproxy.com/https://github.com/$REPO/releases/download/$VERSION/$BIN_FILE"
     info "加速下载地址: $BIN_URL"
@@ -164,6 +179,5 @@ main() {
 
 main "$@"
 EOF
-# 赋予执行权限并运行
 chmod +x install-vohive-fix.sh
 sh install-vohive-fix.sh
