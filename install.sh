@@ -20,24 +20,31 @@ PROCD_PATH=/sbin/procd
 DOWNLOAD_CMD=""
 TMP_DIR=""
 
-# 硬编码绕过系统检测
-os="linux"
+# 硬编码架构 aarch64
 arch="aarch64"
 
 err() {
-    printf '[vohive-install] 错误: %s\n' "$1"
+    printf '[vohive-install] 错误: %s\n' "$1" >&2
     exit 1
 }
 info() {
     printf '[vohive-install] %s\n' "$1"
 }
 need_cmd() {
-    if ! command -v "$1" >/dev/null 2>&1; then err "缺失命令: $1"; fi
+    if ! command -v "$1" >/dev/null 2>&1; then
+        err "缺失依赖命令: $1"
+    fi
 }
 need_download_cmd() {
-    if command -v curl >/dev/null; then DOWNLOAD_CMD="curl -fsSL"; return; fi
-    if command -v wget >/dev/null; then DOWNLOAD_CMD="wget -qO-"; return; fi
-    err "请安装 curl 或 wget"
+    if command -v curl >/dev/null 2>&1; then
+        DOWNLOAD_CMD="curl -fsSL"
+        return
+    fi
+    if command -v wget >/dev/null 2>&1; then
+        DOWNLOAD_CMD="wget -qO-"
+        return
+    fi
+    err "请先安装 curl 或 wget"
 }
 download() {
     local url="$1"
@@ -58,16 +65,29 @@ parse_args() {
 
 install_service() {
     if [ -f "$PROCD_PATH" ]; then
+        # 重写标准 procd 托管脚本，抛弃无效 start/stop 子命令
         cat > "$OPENWRT_INIT_PATH" <<SVC
 #!/bin/sh /etc/rc.common
 START=99
 STOP=10
-start() { $BIN_PATH start; }
-stop() { $BIN_PATH stop; }
-restart() { $BIN_PATH restart; }
+USE_PROCD=1
+
+BIN=/opt/vohive/bin/vohive
+CONF=/opt/vohive/config/config.yaml
+
+start_service() {
+    procd_open_instance
+    procd_set_param command "\$BIN" -c "\$CONF"
+    procd_set_param respawn
+    procd_set_param stdout 1
+    procd_set_param stderr 1
+    procd_close_instance
+}
 SVC
         chmod +x "$OPENWRT_INIT_PATH"
-        info "已创建OpenWrt自启脚本 /etc/init.d/vohive"
+        # 自动设置开机自启
+        "$OPENWRT_INIT_PATH" enable
+        info "已生成 procd 托管脚本并设置开机自启: $OPENWRT_INIT_PATH"
     fi
 }
 
@@ -79,25 +99,45 @@ main() {
     TMP_DIR=$(mktemp -d)
     trap 'rm -rf "$TMP_DIR"' EXIT
 
-      info "安装版本: $VERSION 架构: $arch"
+    info "安装版本: $VERSION 架构: $arch"
     BIN_FILE="vohive-linux-arm64"
-    # ghproxy 加速地址
-    BIN_URL="https://github.com/$REPO/releases/download/$VERSION/$BIN_FILE"
-    info "镜像下载地址: $BIN_URL"
+    # ghproxy 加速下载
+    RAW_URL="https://github.com/$REPO/releases/download/$VERSION/$BIN_FILE"
+    BIN_URL="https://ghproxy.com/$RAW_URL"
+    info "加速下载地址: $BIN_URL"
 
     if [ "$DRY_RUN" -eq 0 ]; then
+        info "正在下载二进制文件..."
         download "$BIN_URL" > "${TMP_DIR}/vohive"
     fi
 
+    # 创建所有目录
     mkdir -p "$INSTALL_DIR" "$CONFIG_DIR" "$DATA_DIR" "$LOG_DIR"
-    [ -f "$BIN_PATH" ] && cp "$BIN_PATH" "$BACKUP_PATH" && info "备份旧程序"
+
+    # 备份旧程序
+    if [ -f "$BIN_PATH" ]; then
+        cp "$BIN_PATH" "$BACKUP_PATH"
+        info "旧程序已备份至 $BACKUP_PATH"
+    fi
+
     if [ "$DRY_RUN" -eq 0 ]; then
         mv "${TMP_DIR}/vohive" "$BIN_PATH"
         chmod +x "$BIN_PATH"
         ln -sf "$BIN_PATH" /usr/bin/vohive
+        info "二进制文件部署完成，全局软链接 /usr/bin/vohive"
     fi
+
     install_service
-    info "安装完成，执行 vohive start 启动"
+
+    info "========================================"
+    info "安装完成！管理服务使用以下命令："
+    info "  /etc/init.d/vohive start    启动服务"
+    info "  /etc/init.d/vohive stop     停止服务"
+    info "  /etc/init.d/vohive restart  重启服务"
+    info "  /etc/init.d/vohive status   查看运行状态"
+    info "  logread -f | grep vohive    实时查看日志"
+    info "注意：需提前创建配置文件 $CONFIG_DIR/config.yaml"
+    info "========================================"
 }
 
 main "$@"
