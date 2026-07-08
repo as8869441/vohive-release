@@ -83,7 +83,6 @@ main() {
     BIN_FILE="vohive-linux-arm64"
     # ghproxy 加速地址
     RAW_URL="https://github.com/$REPO/releases/download/$VERSION/$BIN_FILE"
-    BIN_URL="https://cdn.jsdelivr.net/gh/$REPO@$VERSION/$BIN_FILE"
     info "镜像下载地址: $BIN_URL"
 
     if [ "$DRY_RUN" -eq 0 ]; then
