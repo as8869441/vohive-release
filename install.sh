@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-REPO="${VOHIVE_RELEASE_REPO:-as886944123/vohive-release}"
+REPO="${VOHIVE_RELEASE_REPO:-as8869441/vohive-release}"
 CHANNEL="${VOHIVE_RELEASE_CHANNEL:-stable}"
 VERSION=""
 NO_SYSTEMD=0
