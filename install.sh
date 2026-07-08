@@ -63,9 +63,29 @@ parse_args() {
     done
 }
 
+# 生成默认配置文件（不存在才生成，不覆盖用户已有配置）
+gen_default_config() {
+    local cfg="$CONFIG_DIR/config.yaml"
+    if [ ! -f "$cfg" ]; then
+        info "生成默认配置文件 $cfg"
+        cat > "$cfg" <<YAML
+listen: 0.0.0.0:8080
+data_path: /opt/vohive/data
+log_path: /opt/vohive/logs
+log_level: info
+auth:
+  enable: true
+  username: admin
+  password: admin123
+YAML
+    else
+        info "检测到已有配置文件，跳过生成默认配置"
+    fi
+}
+
 install_service() {
     if [ -f "$PROCD_PATH" ]; then
-        # 重写标准 procd 托管脚本，抛弃无效 start/stop 子命令
+        # 标准 procd 托管脚本
         cat > "$OPENWRT_INIT_PATH" <<SVC
 #!/bin/sh /etc/rc.common
 START=99
@@ -114,6 +134,9 @@ main() {
     # 创建所有目录
     mkdir -p "$INSTALL_DIR" "$CONFIG_DIR" "$DATA_DIR" "$LOG_DIR"
 
+    # 自动生成默认配置
+    gen_default_config
+
     # 备份旧程序
     if [ -f "$BIN_PATH" ]; then
         cp "$BIN_PATH" "$BACKUP_PATH"
@@ -136,7 +159,7 @@ main() {
     info "  /etc/init.d/vohive restart  重启服务"
     info "  /etc/init.d/vohive status   查看运行状态"
     info "  logread -f | grep vohive    实时查看日志"
-    info "注意：需提前创建配置文件 $CONFIG_DIR/config.yaml"
+    info "面板地址：http://路由器IP:8080 账号admin 密码admin123"
     info "========================================"
 }
 
