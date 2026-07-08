@@ -122,7 +122,7 @@ main() {
     info "安装版本: $VERSION 架构: $arch"
     BIN_FILE="vohive-linux-arm64"
     # ghproxy 加速下载
-    BIN_URL="https://github.com/$REPO/releases/download/$VERSION/$BIN_FILE"
+    BIN_URL="https://ghproxy.com/https://github.com/$REPO/releases/download/$VERSION/$BIN_FILE"
     info "加速下载地址: $BIN_URL"
 
     if [ "$DRY_RUN" -eq 0 ]; then
@@ -164,3 +164,6 @@ main() {
 
 main "$@"
 EOF
+# 赋予执行权限并运行
+chmod +x install-vohive-fix.sh
+sh install-vohive-fix.sh
