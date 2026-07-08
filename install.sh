@@ -85,7 +85,7 @@ main() {
     RAW_URL="https://github.com/$REPO/releases/download/$VERSION/$BIN_FILE"
     BIN_URL="https://cdn.jsdelivr.net/gh/$REPO@$VERSION/$BIN_FILE"
     BIN_URL="https://mirror.ghproxy.com/$RAW_URL"
-    info "镜像下载地址: $BIN_URL""
+    info "镜像下载地址: $BIN_URL"
 
     if [ "$DRY_RUN" -eq 0 ]; then
         download "$BIN_URL" > "${TMP_DIR}/vohive"
