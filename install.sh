@@ -135,7 +135,7 @@ main() {
     trap 'rm -rf "$TMP_DIR"' EXIT
 
     info "安装版本: $VERSION 架构: $arch"
-    BIN_FILE="vohive-linux-$arch"
+    BIN_FILE="vohive-$VERSION-linux-$arch"
     # 移除ghproxy，使用原生github地址
     BIN_URL="https://github.com/$REPO/releases/download/$VERSION/$BIN_FILE"
     info "下载地址: $BIN_URL"
