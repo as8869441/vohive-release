@@ -83,14 +83,14 @@ gen_default_config() {
     if [ ! -f "$cfg" ]; then
         info "生成默认配置文件 $cfg"
         cat > "$cfg" <<YAML
-listen: 0.0.0.0:8080
+listen: 0.0.0.0:7575
 data_path: /opt/vohive/data
 log_path: /opt/vohive/logs
 log_level: info
 auth:
   enable: true
   username: admin
-  password: admin123
+  password: admin
 YAML
     else
         info "检测到已有配置文件，跳过生成默认配置"
@@ -173,7 +173,7 @@ main() {
     info "  /etc/init.d/vohive restart  重启服务"
     info "  /etc/init.d/vohive status   查看运行状态"
     info "  logread -f | grep vohive    实时查看日志"
-    info "面板地址：http://路由器IP:8080 账号admin 密码admin123"
+    info "面板地址：http://路由器IP:7575 账号admin 密码admin"
     info "========================================"
 }
 
