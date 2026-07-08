@@ -82,7 +82,7 @@ main() {
       info "安装版本: $VERSION 架构: $arch"
     BIN_FILE="vohive-linux-arm64"
     # ghproxy 加速地址
-    BIN_UR="https://github.com/$REPO/releases/download/$VERSION/$BIN_FILE"
+    BIN_URL="https://github.com/$REPO/releases/download/$VERSION/$BIN_FILE"
     info "镜像下载地址: $BIN_URL"
 
     if [ "$DRY_RUN" -eq 0 ]; then
