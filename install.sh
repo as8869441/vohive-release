@@ -136,9 +136,9 @@ main() {
 
     info "安装版本: $VERSION 架构: $arch"
     BIN_FILE="vohive-linux-$arch"
-    # ghproxy 加速下载
-    BIN_URL="https://ghproxy.com/https://github.com/$REPO/releases/download/$VERSION/$BIN_FILE"
-    info "加速下载地址: $BIN_URL"
+    # 移除ghproxy，使用原生github地址
+    BIN_URL="https://github.com/$REPO/releases/download/$VERSION/$BIN_FILE"
+    info "下载地址: $BIN_URL"
 
     if [ "$DRY_RUN" -eq 0 ]; then
         info "正在下载二进制文件..."
